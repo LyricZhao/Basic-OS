@@ -243,21 +243,13 @@ void kmt_interrupt() {
 
 				// Normal (Displayable Character)
 				if(str[0]) {
-					if(cfocus == 0) {
-						if(cursor_x < 144) {
-							str[1] = 0;
-							putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, str);
-							cursor_x += 8;
-							boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
-							display_refresh_layer_sub(dctl, wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
+					if(key_ctrl) {
+						if('A' <= str[0] && str[0] <= 'Z') {
+							str[0] ^= 32;
 						}
-					} else {
-						if(key_ctrl) {
-							if('A' <= str[0] && str[0] <= 'Z') {
-								str[0] ^= 32;
-							}
-							switch(str[0]) {
-								case 'z':
+						switch (str[0]) {
+							case 'z':
+								if(cfocus == 1) {
 									if(console.task -> tss.ss0) {
 										struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
 										con_print(con, "Process Is Terminated.\n");
@@ -266,16 +258,27 @@ void kmt_interrupt() {
 										console.task -> tss.eip = (int) &asm_end_app;
 										io_sti();
 									}
-									break;
-								default:
-									break;
+								}
+								break;
+							case 'u':
+								break;
+							default:
+								break;
+						}
+					} else {
+						if(cfocus == 0) {
+							if(cursor_x < 144) {
+								str[1] = 0;
+								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, str);
+								cursor_x += 8;
+								boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
+								display_refresh_layer_sub(dctl, wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
 							}
-						} else {
+						} else if(cfocus == 1) {
 							fifo32_push(&console.task -> fifo, str[0] << 16);
 						}
 					}
 				}
-
 
 				switch (itype1) {
 
