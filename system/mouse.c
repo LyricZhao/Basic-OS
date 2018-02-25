@@ -40,6 +40,8 @@ void init_mouse_cursor(struct MOUSE_STATUS *mouse, char background_color) {
 	}
 	mouse -> mx = binfo -> screen_x >> 1;
 	mouse -> my = binfo -> screen_y >> 1;
+  mdec.mmx = -1;
+  mdec.mmy = -1;
 	return;
 }
 

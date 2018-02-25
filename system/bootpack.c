@@ -196,6 +196,8 @@ void task_b_main(struct LAYER *layer) {
 	}
 }
 
+struct LAYER *moving_layer;
+
 void kmt_interrupt() {
 	if(fifo32_size(&keycmd) && keycmd_wait < 0) {
 		keycmd_wait = fifo32_pop(&keycmd);
@@ -260,8 +262,6 @@ void kmt_interrupt() {
 									}
 								}
 								break;
-							case 'u':
-								break;
 							default:
 								break;
 						}
@@ -278,10 +278,10 @@ void kmt_interrupt() {
 							fifo32_push(&console.task -> fifo, str[0] << 16);
 						}
 					}
+					break;
 				}
 
 				switch (itype1) {
-
 					// BackSpace
 					case 0x0e:
 						if(!cfocus) {
@@ -389,6 +389,34 @@ void kmt_interrupt() {
 					if(mouse.mx + 1 > binfo -> screen_x) mouse.mx = binfo -> screen_x - 1;
 					if(mouse.my + 1 > binfo -> screen_y) mouse.my = binfo -> screen_y - 1;
 					layer_move(dctl, mlayer, mouse.mx, mouse.my);
+					if(mdec.btn & 0x01) {
+						int x, y;
+						if(mdec.mmx < 0) {
+							for(int i = dctl -> top - 1; i > 0; -- i) {
+								moving_layer = dctl -> layers[i];
+								x = mouse.mx - moving_layer -> x0;
+								y = mouse.my - moving_layer -> y0;
+								if((0 <= x && x < moving_layer -> xsize) && (0 <= y && y < moving_layer -> ysize)) {
+									if(moving_layer -> img[y * moving_layer -> xsize + y] != moving_layer -> icol) {
+										layer_ud(dctl, moving_layer, dctl -> top - 1);
+										if((3 <= x && x < moving_layer -> xsize - 3) && (3 <= y && y < 21)) {
+											mdec.mmx = mouse.mx;
+											mdec.mmy = mouse.my;
+										}
+										break;
+									}
+								}
+							}
+						} else {
+							x = mouse.mx - mdec.mmx;
+							y = mouse.my - mdec.mmy;
+							layer_move(dctl, moving_layer, moving_layer -> x0 + x, moving_layer -> y0 + y);
+							mdec.mmx = mouse.mx;
+							mdec.mmy = mouse.my;
+						}
+					} else {
+						mdec.mmx = -1;
+					}
 				}
 				break;
 

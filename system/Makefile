@@ -57,7 +57,7 @@ haribote.sys : asmhead.bin bootpack.hrb Makefile
 
 # .img
 
-haribote.img : ipl10.bin haribote.sys Makefile
+haribote.img : ipl10.bin haribote.sys fileT.txt app.bex Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \

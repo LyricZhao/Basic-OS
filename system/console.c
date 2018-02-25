@@ -257,6 +257,7 @@ void command_run(struct CONSOLE *con, char *para) {
     } else {
       print_screen(con, "Error: not a standard executable file.\n", 39);
     }
+    memory_free_4k(memc, (int) app_mem, file -> size);
   }
   return;
 }

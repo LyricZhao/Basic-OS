@@ -35,7 +35,7 @@ struct FIFO32 {
 /* mouse.c */
 struct MOUSE_DEC {
 	unsigned char buf[3]; int phase;
-	int x, y, btn;
+	int x, y, btn, mmx, mmy;
 };
 
 struct MOUSE_STATUS {

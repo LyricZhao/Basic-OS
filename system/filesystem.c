@@ -9,7 +9,7 @@ extern struct MEM_MANAGER *memc;
 
 void FAT_init(void) {
   fat_table = (int *)memory_alloc_4k(memc, 4 * 2880);
-  char *img = (char *)(ADR_DISKIMG + 0x000200);
+  unsigned char *img = (unsigned char *)(ADR_DISKIMG + 0x000200);
   for(int i = 0, j = 0; i < 2880; i += 2, j += 3) {
     fat_table[i + 0] = (img[j + 0]      | img[j + 1] << 8) & 0xfff;
     fat_table[i + 1] = (img[j + 1] >> 4 | img[j + 2] << 4) & 0xfff;
@@ -121,6 +121,7 @@ void cat_output(struct CONSOLE *con, struct FILEINFO *file) {
   char *img = (char *)(ADR_DISKIMG + 0x003e00);
   int cno = file -> clustno, size = file -> size, len;
   for(;size; cno = fat_table[cno]) {
+    dprint_int(cno);
     len = imin(512, size);
     print_screen(con, img + cno * 512, len);
     size -= len;

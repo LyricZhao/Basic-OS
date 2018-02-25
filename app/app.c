@@ -7,14 +7,15 @@
 void HariMain(void) {
 	api_memory_init();
 	int win = api_win_open(160, 100, -1, "Stars & Lines");
+	int i, x, y, c;
 	api_win_boxfill(win, 6, 26, 153, 93, 0);
-	for(int i = 0; i < 200; ++ i) {
-		int x = rand() % 147 + 6;
-		int y = rand() % 67 + 26;
-		int c = rand() % 15;
+	for(i = 0; i < 200; ++ i) {
+		x = rand() % 147 + 6;
+		y = rand() % 67 + 26;
+		c = rand() % 15;
 		api_win_dw_point(win, x, y, c);
 	}
-	for(int i = 0; i < 8; ++ i) {
+	for(i = 0; i < 8; ++ i) {
 		api_win_dw_line(win, 8, 26, 77, i * 9 + 26, i);
 		api_win_dw_line(win, 88, 26, i * 9 + 88, 89, i);
 	}
