@@ -85,6 +85,7 @@ struct LAYER {
 	int xsize, ysize, x0, y0;
 	int icol, height, flags;
 	struct TASK *task;
+	struct WINDOW *window;
 };
 
 struct LYRCTL {

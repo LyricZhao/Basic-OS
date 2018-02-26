@@ -17,6 +17,6 @@ void dprint_int(int dx) {
 void dprint_str(char *dc) {
   boxfill8(blayer_img, binfo -> screen_x, COL8_WHITE, 3, binfo -> screen_y - 45, binfo -> screen_x - 1, binfo -> screen_y - 30);
   putfont_ascii(blayer_img, binfo -> screen_x, 3, binfo -> screen_y - 45, COL8_BLACK, dc);
-  display_refresh_layer_sub(dctl, blayer, 3, binfo -> screen_y - 45, binfo -> screen_x - 1, binfo -> screen_y - 30);
+  display_refresh_layer_sub(blayer, 3, binfo -> screen_y - 45, binfo -> screen_x - 1, binfo -> screen_y - 30);
   return;
 }

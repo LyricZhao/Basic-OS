@@ -95,15 +95,15 @@ void command_mem(struct CONSOLE *con);
 
 /* lyrctl.c */
 void lyrctl_init(void);
-struct LAYER *layer_alloc(struct LYRCTL *lyrctl);
+struct LAYER *layer_alloc(void);
 void layer_bset(struct LAYER *layer, unsigned char *img, int xsize, int ysize, int icol);
-void layer_ud(struct LYRCTL *lyrctl, struct LAYER *layer, int height);
-void layer_move(struct LYRCTL *lyrctl, struct LAYER *layer, int nx0, int ny0);
-void layer_del(struct LYRCTL *lyrctl, struct LAYER *layer);
-void display_refresh_all(struct LYRCTL *lyrctl);
-void display_refresh_layer_sub(struct LYRCTL *lyrctl, struct LAYER *layer, int x0, int y0, int x1, int y1);
-void display_refresh_sub(struct LYRCTL *lyrctl, int x0, int y0, int x1, int y1, int h0, int h1);
-void map_refresh_sub(struct LYRCTL *lyrctl, int x0, int y0, int x1,int y1, int h0);
+void layer_ud(struct LAYER *layer, int height);
+void layer_move(struct LAYER *layer, int nx0, int ny0);
+void layer_del(struct LAYER *layer);
+void display_refresh_all(void);
+void display_refresh_layer_sub(struct LAYER *layer, int x0, int y0, int x1, int y1);
+void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1);
+void map_refresh_sub(int x0, int y0, int x1,int y1, int h0);
 void putfont_ascii_in_layer(struct LAYER *layer, int x, int y, int col, int back, char *str);
 
 /* timer.c */

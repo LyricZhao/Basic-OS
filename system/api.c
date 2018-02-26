@@ -57,7 +57,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     case 4: {
       struct WINDOW *window = (struct WINDOW *) ebx;
       putfont_ascii(window -> img, window -> layer -> xsize, esi, edi, eax, (char *)ebp + cs_base);
-      display_refresh_layer_sub(dctl, window -> layer, esi, edi, esi + strlen((char *)ebp + cs_base) * 8, edi + 16);
+      display_refresh_layer_sub(window -> layer, esi, edi, esi + strlen((char *)ebp + cs_base) * 8, edi + 16);
       break;
     }
 
@@ -98,7 +98,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
       struct WINDOW *window = (struct WINDOW *) (ebx & 0xfffffffe);
       window -> img[window -> layer -> xsize * edi + esi] = eax;
       if(ebx & 1) {
-        display_refresh_layer_sub(dctl, window -> layer, esi, edi, esi + 1, edi + 1);
+        display_refresh_layer_sub(window -> layer, esi, edi, esi + 1, edi + 1);
       }
         break;
     }
@@ -106,7 +106,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     // GUI Refresh Sub
     case 10: {
       struct WINDOW *window = (struct WINDOW *) ebx;
-      display_refresh_layer_sub(dctl, window -> layer, eax, ecx, esi, edi);
+      display_refresh_layer_sub(window -> layer, eax, ecx, esi, edi);
       break;
     }
 
@@ -115,7 +115,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
       struct WINDOW *window = (struct WINDOW *) (ebx & 0xfffffffe);
       api_win_dw_line(window, eax, ecx, esi, edi, ebp);
       if(ebx & 1) {
-        display_refresh_layer_sub(dctl, window -> layer, eax, ecx, esi, edi);
+        display_refresh_layer_sub(window -> layer, eax, ecx, esi, edi);
       }
       break;
     }
@@ -123,7 +123,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     // GUI Close Window
     case 12: {
       struct WINDOW *window = (struct WINDOW *) ebx;
-      layer_del(dctl, window -> layer);
+      layer_del(window -> layer);
       break;
     }
 

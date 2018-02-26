@@ -26,7 +26,7 @@ void pf_nline(struct CONSOLE *con) {
     *cy += 16;
   else {
     move_oneline(layer -> img, layer -> xsize);
-    display_refresh_layer_sub(dctl, layer, 8, 28, 8 + 240, 28 + 128);
+    display_refresh_layer_sub(layer, 8, 28, 8 + 240, 28 + 128);
   }
   *cx = 8;
   return;

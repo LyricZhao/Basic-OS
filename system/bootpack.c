@@ -116,12 +116,12 @@ void HariMain(void) {
 	window_init();
 
 		// Background Layer
-	blayer = layer_alloc(dctl);
+	blayer = layer_alloc();
 	blayer_img = (unsigned char *) memory_alloc_4k(memc, binfo -> screen_x * binfo -> screen_y);
 	init_screen(blayer_img, binfo -> screen_x, binfo -> screen_y);
 	layer_bset(blayer, blayer_img, binfo -> screen_x, binfo -> screen_y, -1);
-	layer_move(dctl, blayer, 0, 0);
-	layer_ud(dctl, blayer, 0);
+	layer_move(blayer, 0, 0);
+	layer_ud(blayer, 0);
 
 		// Window Layer
 	wmain = window_alloc();
@@ -129,10 +129,10 @@ void HariMain(void) {
 	win_key_on(wmain);
 
 		// Mouse Layer
-	mlayer = layer_alloc(dctl);
+	mlayer = layer_alloc();
 	layer_bset(mlayer, mouse.mcur, 16, 16, COL8_D_GRAY);
-	layer_move(dctl, mlayer, mouse.mx, mouse.my);
-	layer_ud(dctl, mlayer, 5);
+	layer_move(mlayer, mouse.mx, mouse.my);
+	layer_ud(mlayer, 5);
 
 		// TextBox
 	make_textbox8(wmain -> layer, 8, 28, 144, 16, COL8_WHITE);
@@ -145,7 +145,7 @@ void HariMain(void) {
 	console_window_init();
 
 		// Refresh all
-	display_refresh_all(dctl);
+	display_refresh_all();
 
 	/* Interrupt Event Queue Initialization */
 	fifo32_init(&task_main -> fifo, 256, event_queue_buf, task_main);
@@ -248,7 +248,7 @@ void kmt_interrupt() {
 								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, str);
 								cursor_x += 8;
 								boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
-								display_refresh_layer_sub(dctl, wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
+								display_refresh_layer_sub(wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
 							}
 						} else{
 							fifo32_push(&(key_window -> layer -> task -> fifo), str[0] << 16);
@@ -265,7 +265,7 @@ void kmt_interrupt() {
 								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, " ");
 								cursor_x -= 8;
 								boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
-								display_refresh_layer_sub(dctl, wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
+								display_refresh_layer_sub(wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
 							}
 						} else {
 							fifo32_push(&(key_window -> layer -> task -> fifo), 8 << 16);
@@ -281,6 +281,7 @@ void kmt_interrupt() {
 							if(window -> layer) {
 								if(flag) {
 									win_key_on(window);
+									layer_ud(window -> layer, dctl -> top - 1);
 									break;
 								} else if(window == key_window) {
 									flag = 1;
@@ -375,7 +376,7 @@ void kmt_interrupt() {
 					if(mouse.mx < 0) mouse.mx = 0; if(mouse.my < 0) mouse.my = 0;
 					if(mouse.mx + 1 > binfo -> screen_x) mouse.mx = binfo -> screen_x - 1;
 					if(mouse.my + 1 > binfo -> screen_y) mouse.my = binfo -> screen_y - 1;
-					layer_move(dctl, mlayer, mouse.mx, mouse.my);
+					layer_move(mlayer, mouse.mx, mouse.my);
 					if(mdec.btn & 0x01) {
 						int x, y;
 						if(mdec.mmx < 0) {
@@ -385,7 +386,9 @@ void kmt_interrupt() {
 								y = mouse.my - moving_layer -> y0;
 								if((0 <= x && x < moving_layer -> xsize) && (0 <= y && y < moving_layer -> ysize)) {
 									if(moving_layer -> img[y * moving_layer -> xsize + y] != moving_layer -> icol) {
-										layer_ud(dctl, moving_layer, dctl -> top - 1);
+										win_key_off(key_window);
+										win_key_on(moving_layer -> window);
+										layer_ud(moving_layer, dctl -> top - 1);
 										if((3 <= x && x < moving_layer -> xsize - 3) && (3 <= y && y < 21)) {
 											mdec.mmx = mouse.mx;
 											mdec.mmy = mouse.my;
@@ -408,7 +411,7 @@ void kmt_interrupt() {
 						} else {
 							x = mouse.mx - mdec.mmx;
 							y = mouse.my - mdec.mmy;
-							layer_move(dctl, moving_layer, moving_layer -> x0 + x, moving_layer -> y0 + y);
+							layer_move(moving_layer, moving_layer -> x0 + x, moving_layer -> y0 + y);
 							mdec.mmx = mouse.mx;
 							mdec.mmy = mouse.my;
 						}

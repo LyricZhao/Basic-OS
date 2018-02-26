@@ -16,12 +16,13 @@ void window_init(void) {
 
 void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task) {
   window -> img = (unsigned char *) memory_alloc_4k(memc, xsize * ysize);
-  window -> layer = layer_alloc(dctl);
+  window -> layer = layer_alloc();
+  window -> layer -> window = window;
   memcpy(window -> title, title, sizeof(char) * (strlen(title) + 1));
   layer_bset(window -> layer, window -> img, xsize, ysize, icol);
   draw_center_window(window -> img, xsize, ysize, window -> title, ws);
-  layer_move(dctl, window -> layer, mx, my);
-  layer_ud(dctl, window -> layer, height);
+  layer_move(window -> layer, mx, my);
+  layer_ud(window -> layer, height);
   window -> task = task;
   window -> layer -> task = task;
   return;
@@ -29,7 +30,8 @@ void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int ic
 
 void win_del(struct WINDOW *window) {
   struct LAYER *layer = window -> layer;
-  memory_free_4k(memc, window -> img, layer -> xsize * layer -> ysize);
+  layer_del(layer);
+  memory_free_4k(memc, (unsigned int)window -> img, layer -> xsize * layer -> ysize);
   window -> layer = 0;
   return;
 }
@@ -43,13 +45,13 @@ void win_key_on(struct WINDOW *window) {
   key_window = window;
   struct LAYER *layer = window -> layer;
   make_wtitle(window -> img, layer -> xsize, window -> title, 1);
-  display_refresh_layer_sub(dctl, layer, 3, 3, layer -> xsize - 3, 21);
+  display_refresh_layer_sub(layer, 3, 3, layer -> xsize - 3, 21);
   return;
 }
 
 void win_key_off(struct WINDOW *window) {
   struct LAYER *layer = window -> layer;
   make_wtitle(window -> img, layer -> xsize, window -> title, 0);
-  display_refresh_layer_sub(dctl, layer, 3, 3, layer -> xsize - 3, 21);
+  display_refresh_layer_sub(layer, 3, 3, layer -> xsize - 3, 21);
   return;
 }

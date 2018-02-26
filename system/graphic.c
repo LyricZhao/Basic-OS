@@ -54,7 +54,7 @@ void boxfill8_in_layer(struct LAYER *layer, unsigned char col, int x0, int y0, i
 	for(int i = x0; i <= x1; ++ i)
 		for(int j = y0; j <= y1; ++ j)
 			img[i + j * width] = col;
-	display_refresh_layer_sub(dctl, layer, x0, y0, x1 + 1, y1 + 1);
+	display_refresh_layer_sub(layer, x0, y0, x1 + 1, y1 + 1);
 	return;
 }
 
@@ -69,7 +69,7 @@ void make_textbox8(struct LAYER *layer, int x0, int y0, int xsize, int ysize, in
 	boxfill8(layer -> img, layer -> xsize, COL8_M_GRAY, x0 - 2, y1 + 1, x1 + 0, y1 + 1);
 	boxfill8(layer -> img, layer -> xsize, COL8_M_GRAY, x1 + 1, y0 - 2, x1 + 1, y1 + 1);
 	boxfill8(layer -> img, layer -> xsize, 				 col, x0 - 1, y0 - 1, x1 + 0, y1 + 0);
-	display_refresh_layer_sub(dctl, layer, x0 - 3, y0 - 3, x1 + 3, y1 + 3);
+	display_refresh_layer_sub(layer, x0 - 3, y0 - 3, x1 + 3, y1 + 3);
 	return;
 }
 
