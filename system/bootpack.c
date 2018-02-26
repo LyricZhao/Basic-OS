@@ -22,6 +22,10 @@ struct LAYER *blayer;
 unsigned char *blayer_img;
 struct WINDOW *wmain;
 
+/* Window Management */
+extern struct WINDOWCTL *wctl;
+extern struct WINDOW *key_window;
+
 /* Time Management */
 int current_time;
 extern struct TIMERCTL timerctl;
@@ -48,13 +52,9 @@ struct TASK *idle;
 /* Console */
 extern struct CONSOLE console;
 
-/* Current Focus */
-int cfocus = 0;
-
 /* Functions */
 void task_idle(void);
 void kmt_interrupt(void);
-void task_b_main(struct LAYER *layer);
 
 void HariMain(void) {
 
@@ -126,6 +126,7 @@ void HariMain(void) {
 		// Window Layer
 	wmain = window_alloc();
 	window_set(   wmain,    "main", 160, 52, -1,   8 + 150,  56, 1, 1, 0);
+	win_key_on(wmain);
 
 		// Mouse Layer
 	mlayer = layer_alloc(dctl);
@@ -167,35 +168,6 @@ void task_idle(void) {
 		io_hlt();
 }
 
-void task_b_main(struct LAYER *layer) {
-	struct FIFO32 fifo;
-	struct TIMER *timerb;
-	char str[32];
-	int fifobuf[128], count = 0;
-	fifo32_init(&fifo, 128, fifobuf, 0);
-	timerb = timer_alloc();
-	timer_init(timerb, &fifo, 1);
-	timer_countdown(timerb, 100);
-	for(;;) {
-		++ count;
-		io_cli();
-		if(!fifo32_size(&fifo)) {
-			# ifdef ENABLE_CPU_HLT
-				io_stihlt();
-			# else
-				io_sti();
-			# endif
-		}
-		else {
-			fifo32_pop(&fifo);
-			io_sti();
-			sprintf(str, "%11d", count);
-			putfont_ascii_in_layer(layer, 24, 28, COL8_BLACK, COL8_D_GRAY, str);
-			timer_countdown(timerb, 100);
-		}
-	}
-}
-
 struct LAYER *moving_layer;
 
 void kmt_interrupt() {
@@ -227,6 +199,7 @@ void kmt_interrupt() {
 
 			/* Keyboard Interrupt */
 			case 0:
+				// System Info
 				sprintf(str, "%02X", itype1);
 				putfont_ascii_in_layer(blayer, 0, 16, COL8_BLACK, COL8_RED, str);
 				if(itype1 < 0x80) {
@@ -243,15 +216,17 @@ void kmt_interrupt() {
 						str[0] ^= 32;
 				}
 
-				// Normal (Displayable Character)
+				// Normal (Displayable Character) - SKey/Gkey
 				if(str[0]) {
+					// GKey
 					if(key_ctrl) {
 						if('A' <= str[0] && str[0] <= 'Z') {
 							str[0] ^= 32;
 						}
 						switch (str[0]) {
+							// Control + Z
 							case 'z':
-								if(cfocus == 1) {
+								if(key_window != wmain) {
 									if(console.task -> tss.ss0) {
 										struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
 										con_print(con, "Process Is Terminated.\n");
@@ -266,7 +241,8 @@ void kmt_interrupt() {
 								break;
 						}
 					} else {
-						if(cfocus == 0) {
+						if(key_window == wmain) {
+							// System WMain
 							if(cursor_x < 144) {
 								str[1] = 0;
 								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, str);
@@ -274,17 +250,17 @@ void kmt_interrupt() {
 								boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
 								display_refresh_layer_sub(dctl, wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
 							}
-						} else if(cfocus == 1) {
-							fifo32_push(&console.task -> fifo, str[0] << 16);
+						} else{
+							fifo32_push(&(key_window -> layer -> task -> fifo), str[0] << 16);
 						}
 					}
 					break;
 				}
 
 				switch (itype1) {
-					// BackSpace
+					// BackSpace - SKey
 					case 0x0e:
-						if(!cfocus) {
+						if(key_window == wmain) {
 							if(cursor_x > 8) {
 								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, " ");
 								cursor_x -= 8;
@@ -292,84 +268,95 @@ void kmt_interrupt() {
 								display_refresh_layer_sub(dctl, wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
 							}
 						} else {
-							fifo32_push(&(console.task -> fifo), 8 << 16);
+							fifo32_push(&(key_window -> layer -> task -> fifo), 8 << 16);
 						}
 						break;
 
-					// Tab
+					// Tab - GKey
 					case 0x0f: { // Note Here: {} must be here to define the domain of the variable allocated after 'case'
-						struct LAYER *l1 = 					wmain -> layer;
-						struct LAYER *l2 = console.window -> layer;
-						make_wtitle(l1 -> img, l1 -> xsize,    "main", cfocus    );
-						make_wtitle(l2 -> img, l2 -> xsize, "console", cfocus ^ 1);
-						cfocus ^= 1;
-						display_refresh_layer_sub(dctl, l1, 0, 0, l1 -> xsize, 21);
-						display_refresh_layer_sub(dctl, l2, 0, 0, l2 -> xsize, 21);
+						win_key_off(key_window);
+						char flag = 0;
+						for(int i = 0;;) {
+							struct WINDOW *window = &(wctl -> windows[i]);
+							if(window -> layer) {
+								if(flag) {
+									win_key_on(window);
+									break;
+								} else if(window == key_window) {
+									flag = 1;
+								}
+							}
+							++ i;
+							if(i == wctl -> tot) {
+								i = 0;
+							}
+						}
 						break;
 					}
 
-					//CapsLock
+					//CapsLock - GKey
 					case 0x3a:
 						key_leds ^= 4;
 						fifo32_push(&keycmd, KEYCMD_LED);
 						fifo32_push(&keycmd, key_leds);
 						break;
 
-					// NumLock
+					// NumLock - GKey
 					case 0x45:
 						key_leds ^= 2;
 						fifo32_push(&keycmd, KEYCMD_LED);
 						fifo32_push(&keycmd, key_leds);
 						break;
 
-					// ScrollLock
+					// ScrollLock - GKey
 					case 0x46:
 						key_leds ^= 1;
 						fifo32_push(&keycmd, KEYCMD_LED);
 						fifo32_push(&keycmd, key_leds);
 						break;
 
-					// Enter
+					// Enter - SKey
 					case 0x1c:
-						if(cfocus)
-							fifo32_push(&console.task -> fifo, 10 << 16);
+						if(key_window != wmain) {
+							fifo32_push(&(key_window -> layer -> task -> fifo), 10 << 16);
+						}
 
-					// Send OK
+					// Send OK - PKey
 					case 0xfa:
 						keycmd_wait = -1;
 						break;
 
-					// Send Not OK
+					// Send Not OK - PKey
 					case 0xfe:
 						wait_KBC_sendready();
 						io_out8(PORT_KEYDAT, keycmd_wait);
 
-					// L-Shift ON
+					// L-Shift ON - GKey
 					case 0x2a:
 						key_shift |= 1;
 						break;
 
-					// R-Shift ON
+					// R-Shift ON - GKey
 					case 0x36:
 						key_shift |= 2;
 						break;
 
-					// L-Ctrl ON
+					// L-Ctrl ON - GKey
 					case 0x1d:
 						key_ctrl |= 1;
 						break;
 
-					// L-Shift OFF
+					// L-Shift OFF - GKey
 					case 0xaa:
 						key_shift &= ~ 1;
 						break;
 
-					// R-Shift OFF
+					// R-Shift OFF - GKey
 					case 0xb6:
 						key_shift &= ~ 2;
 						break;
 
-					// L-Ctrl OFF
+					// L-Ctrl OFF - GKey
 					case 0x9d:
 						key_ctrl &= ~ 1;
 						break;

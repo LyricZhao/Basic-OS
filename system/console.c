@@ -8,6 +8,7 @@ extern struct MEM_MANAGER *memc;
 extern struct LYRCTL *dctl;
 extern struct LAYER *blayer;
 extern struct WINDOWCTL *wctl;
+extern struct WINDOW *key_window;
 
 void move_oneline(unsigned char *img , int xsize) {
   for(int y = 28; y < 28 + 112; ++ y) for(int x = 8; x < 8 + 240; ++ x)
@@ -197,7 +198,7 @@ void command_handler(struct CONSOLE *con, char *command) {
 
 void console_window_init(void) {
   console.window = window_alloc();
-  window_set(console.window, "console", 256, 165, -1, 312, 184, 2, 0, 0);
+  window_set(console.window, "console", 256, 165, -1, 312, 184, 2, 0, console.task);
   make_textbox8(console.window -> layer, 8, 28, 240, 128, COL8_BLACK);
   return;
 }
@@ -246,13 +247,15 @@ void command_run(struct CONSOLE *con, char *para) {
       set_segmdesc(gdt + 1004,       segsiz - 1, (int)pro_mem, AR_DATA32_RW + 0x60);
       for(int i = 0; i < datsiz; ++ i)
         pro_mem[esp + i] = app_mem[dathrb + i];
+
       start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task -> tss.esp0));
       for(int i = 0; i < wctl -> tot; ++ i) {
         struct WINDOW *window = &wctl -> windows[i];
-        if(window -> task == task) {
-          layer_del(dctl, window -> layer);
+        if(window -> task == task && window != console.window) {
+          win_del(window);
         }
       }
+      win_key_on(console.window);
       memory_free_4k(memc, (int) pro_mem, segsiz);
     } else {
       print_screen(con, "Error: not a standard executable file.\n", 39);

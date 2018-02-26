@@ -41,8 +41,6 @@ void layer_ud(struct LYRCTL *lyrctl, struct LAYER* layer, int height) {
 
   int prh = layer -> height;
 
-  dprint_int(lyrctl -> top);
-
   if(height > lyrctl -> top + 1) height = lyrctl -> top + 1;
   if(height < -1) height = -1;
   layer -> height = height;

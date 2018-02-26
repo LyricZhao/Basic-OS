@@ -5,6 +5,7 @@
 
 extern struct LYRCTL *dctl;
 extern struct LAYER *blayer;
+extern struct WINDOW *key_window;
 
 void con_putchar(struct CONSOLE *con, char c) {
   print_screen(con, &c, 1);
@@ -46,6 +47,8 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     case 3: {
       struct WINDOW *window = window_alloc();
       window_set(window, (char *) ecx + cs_base, esi, edi, eax, 100, 50, 2, 1, task);
+      win_key_off(key_window);
+      win_key_on(window);
       reg[7] = (int) window;
       break;
     }

@@ -130,6 +130,9 @@ struct TASK *task_now(void);
 void window_init(void);
 struct WINDOW *window_alloc(void);
 void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task);
+void win_key_off(struct WINDOW *window);
+void win_key_on(struct WINDOW *window);
+void win_del(struct WINDOW *window);
 
 /* console.c */
 void console_main(void);
