@@ -247,7 +247,7 @@ void command_run(struct CONSOLE *con, char *para) {
       for(int i = 0; i < datsiz; ++ i)
         pro_mem[esp + i] = app_mem[dathrb + i];
       start_app(0x1b, 1003 * 8, esp, 1004 * 8, &(task -> tss.esp0));
-      for(int i = 0; i < MAX_WINDOWS; ++ i) {
+      for(int i = 0; i < wctl -> tot; ++ i) {
         struct WINDOW *window = &wctl -> windows[i];
         if(window -> task == task) {
           layer_del(dctl, window -> layer);

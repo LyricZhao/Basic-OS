@@ -125,7 +125,7 @@ void HariMain(void) {
 
 		// Window Layer
 	wmain = window_alloc();
-	window_set(   wmain,    "main", 160, 52, -1,   8 + 150,  56, 1, 1, task_main);
+	window_set(   wmain,    "main", 160, 52, -1,   8 + 150,  56, 1, 1, 0);
 
 		// Mouse Layer
 	mlayer = layer_alloc(dctl);
@@ -402,6 +402,17 @@ void kmt_interrupt() {
 										if((3 <= x && x < moving_layer -> xsize - 3) && (3 <= y && y < 21)) {
 											mdec.mmx = mouse.mx;
 											mdec.mmy = mouse.my;
+										}
+										if((5 <= x && x < 21) && (5 <= y && y < 19)) {
+											if(moving_layer -> task != 0) {
+												mdec.mmx = -1;
+												struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
+												con_print(con, "Process Is Terminated.(By Mouse)\n");
+												io_cli();
+												console.task -> tss.eax = (int) &(console.task -> tss.esp0);
+												console.task -> tss.eip = (int) &asm_end_app;
+												io_sti();
+											}
 										}
 										break;
 									}

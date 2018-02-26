@@ -41,6 +41,8 @@ void layer_ud(struct LYRCTL *lyrctl, struct LAYER* layer, int height) {
 
   int prh = layer -> height;
 
+  dprint_int(lyrctl -> top);
+
   if(height > lyrctl -> top + 1) height = lyrctl -> top + 1;
   if(height < -1) height = -1;
   layer -> height = height;
@@ -56,7 +58,7 @@ void layer_ud(struct LYRCTL *lyrctl, struct LAYER* layer, int height) {
       display_refresh_sub(lyrctl, layer -> x0, layer -> y0, layer -> x0 + layer -> xsize, layer -> y0 + layer -> ysize, height + 1, prh);
     } else {
       -- lyrctl -> top;
-      if(lyrctl -> top > prh) {
+      if(lyrctl -> top >= prh) {
         for(int i = prh; i <= lyrctl -> top; ++ i) {
           lyrctl -> layers[i] = lyrctl -> layers[i + 1];
           lyrctl -> layers[i] -> height = i;
@@ -99,8 +101,9 @@ void layer_move(struct LYRCTL *lyrctl, struct LAYER *layer, int nx0, int ny0) {
 }
 
 void layer_del(struct LYRCTL *lyrctl, struct LAYER *layer) {
-  if(~ layer -> height)
+  if(~ layer -> height) {
     layer_ud(lyrctl, layer, -1);
+  }
   layer -> flags = 0;
   return;
 }

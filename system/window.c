@@ -22,6 +22,7 @@ void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int ic
   layer_move(dctl, window -> layer, mx, my);
   layer_ud(dctl, window -> layer, height);
   window -> task = task;
+  window -> layer -> task = task;
   return;
 }
 

@@ -53,33 +53,6 @@ struct MEM_MANAGER {
   struct FREE_BLOCK fb[MAX_FREE_BLOCK_CNT];
 };
 
-/* lyrctl.c */
-struct LAYER {
-	unsigned char *img;
-	int xsize, ysize, x0, y0;
-	int icol, height, flags;
-};
-
-struct LYRCTL {
-	unsigned char *vram, *map;
-	int xsize, ysize, top;
-	struct LAYER layers0[MAX_LAYERS];
-	struct LAYER *layers[MAX_LAYERS];
-};
-
-/* timer.c */
-struct TIMER {
-	unsigned int count, timeout, pos;
-	struct FIFO32 *tq;
-	unsigned char data, flags;
-};
-
-struct TIMERCTL {
-	unsigned int count, next, tot;
-	struct TIMER *timers[MAX_TIMERS];
-	struct TIMER timers0[MAX_TIMERS];
-};
-
 /* multitask.c */
 struct TSS32 {
   int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
@@ -104,6 +77,34 @@ struct TASKCTL {
 	int clv; char lv_change;
 	struct TASKLV levels[MAX_LEVELS];
 	struct TASK tasks0[MAX_TASKS];
+};
+
+/* lyrctl.c */
+struct LAYER {
+	unsigned char *img;
+	int xsize, ysize, x0, y0;
+	int icol, height, flags;
+	struct TASK *task;
+};
+
+struct LYRCTL {
+	unsigned char *vram, *map;
+	int xsize, ysize, top;
+	struct LAYER layers0[MAX_LAYERS];
+	struct LAYER *layers[MAX_LAYERS];
+};
+
+/* timer.c */
+struct TIMER {
+	unsigned int count, timeout, pos;
+	struct FIFO32 *tq;
+	unsigned char data, flags;
+};
+
+struct TIMERCTL {
+	unsigned int count, next, tot;
+	struct TIMER *timers[MAX_TIMERS];
+	struct TIMER timers0[MAX_TIMERS];
 };
 
 /* window.c */
