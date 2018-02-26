@@ -59,6 +59,8 @@ void console_main() {
       itype0 = (dat & 0xff000000) >> 24;
       itype1 = (dat & 0x00ff0000) >> 16;
       switch(itype0) {
+
+        // Keyboard
         case 0:
           switch(itype1) {
 
@@ -113,12 +115,19 @@ void console_main() {
           boxfill8_in_layer(layer, cursor_col, console.cursor_x, console.cursor_y, console.cursor_x + 7, console.cursor_y + 15);
           break;
 
+        // Console Timer
         case 2:
           cursor_col ^= 7;
           timer_countdown(timer, 50);
           boxfill8_in_layer(layer, cursor_col, console.cursor_x, console.cursor_y, console.cursor_x + 7, console.cursor_y + 15);
           break;
-        default: // Error
+
+        // Application Timer - Not Here
+        case 3:
+          break;
+
+        // Error
+        default:
           putfont_ascii_in_layer(blayer, 0, 64, COL8_BLACK, COL8_WHITE, "ERROR");
     			for(;;);
       }

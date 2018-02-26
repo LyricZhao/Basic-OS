@@ -15,24 +15,24 @@ void inthandler2c(int *esp) { // PS2 Mouse
 }
 
 void init_mouse_cursor(struct MOUSE_STATUS *mouse, char background_color) {
-	static char cursor[16][16] = {
-		"**************..",
-		"*OOOOOOOOOOO*...",
-		"*OOOOOOOOOO*....",
-		"*OOOOOOOOO*.....",
-		"*OOOOOOOO*......",
-		"*OOOOOOO*.......",
-		"*OOOOOOO*.......",
-		"*OOOOOOOO*......",
-		"*OOOO**OOO*.....",
-		"*OOO*..*OOO*....",
-		"*OO*....*OOO*...",
-		"*O*......*OOO*..",
-		"**........*OOO*.",
-		"*..........*OOO*",
-		"............*OO*",
-		".............***"
-	};
+  static char cursor[16][16] = {
+    "**********......",
+    "*OOOOOOO*.......",
+    "*OOOOOO*........",
+    "*OOOOO*.........",
+    "*OOOOO*.........",
+    "*OOOOOO*........",
+    "*OO**OOO*.......",
+    "*O*..*OOO*......",
+    "**....*O*.......",
+    "*......*........",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................"
+  };
 	for(int i = 0; i < 16; ++ i) for(int j = 0; j < 16; ++ j) {
 		if(cursor[i][j] == '*') mouse -> mcur[(i << 4) + j] = COL8_M_GRAY;
 		if(cursor[i][j] == 'O') mouse -> mcur[(i << 4) + j] = COL8_WHITE;

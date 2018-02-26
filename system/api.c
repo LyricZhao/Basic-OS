@@ -127,7 +127,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
       break;
     }
 
-    // Keyboard
+    // Keyboard & Timer
     case 13: {
 
       for(;;) {
@@ -148,12 +148,16 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
           itype1 = (dat & 0x00ff0000) >> 16;
           switch(itype0) {
             case 0: {
-              reg[7] = itype1;
+              reg[7] = dat;
               return 0;
             }
             case 2: {
               timer_countdown(con -> timer, 50);
               break;
+            }
+            case 3: {
+              reg[7] = dat;
+              return 0;
             }
             default: {
               putfont_ascii_in_layer(blayer, 0, 64, COL8_BLACK, COL8_WHITE, "ERROR");
@@ -162,6 +166,30 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
           }
         }
       }
+      break;
+    }
+
+    // Timer Allocation
+    case 14: {
+      reg[7] = (int)timer_alloc();
+      break;
+    }
+
+    // Timer Initialization
+    case 15: {
+      timer_init((struct TIMER *)ebx, &task -> fifo, eax | 0x80);
+      break;
+    }
+
+    // Timer Countdown
+    case 16: {
+      timer_countdown((struct TIMER *)ebx, eax);
+      break;
+    }
+
+    // Timer Free
+    case 17: {
+      timer_free((struct TIMER *)ebx);
       break;
     }
 

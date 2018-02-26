@@ -30,7 +30,11 @@ void inthandler20(int *esp) {
       if(timer == task_timer) {
         tsw = 1;
       } else {
-        fifo32_push(timer -> tq, 0x02000000 | (((int)timer -> data) << 16));
+        if(timer -> data & 0x80) {
+          fifo32_push(timer -> tq, 0x03000000 | (((int)(timer -> data ^ 0x80)) << 16));
+        } else {
+          fifo32_push(timer -> tq, 0x02000000 | (((int)timer -> data) << 16));
+        }
       }
     } else if(timer -> timeout < timerctl.next)
       timerctl.next = timer -> timeout;
