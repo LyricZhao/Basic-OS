@@ -121,7 +121,7 @@ void cat_output(struct CONSOLE *con, struct FILEINFO *file) {
   char *img = (char *)(ADR_DISKIMG + 0x003e00);
   int cno = file -> clustno, size = file -> size, len;
   for(;size; cno = fat_table[cno]) {
-    dprint_int(cno);
+    // dprint_int(cno);
     len = imin(512, size);
     print_screen(con, img + cno * 512, len);
     size -= len;

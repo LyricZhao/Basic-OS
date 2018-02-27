@@ -155,7 +155,7 @@ void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
 }*/
 
 void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
-  unsigned char col, *buf, *mmp, *mmv, *mmb;
+  unsigned char *buf, *mmp, *mmv, *mmb;
   int *iip, *iiv, *iib;
   int tc, bx0, by0, bx1, by1, lid, pos, sid, len, len2;
   for(int h = h0; h <= h1; ++ h) {

@@ -372,12 +372,18 @@ void kmt_interrupt() {
 												key_console -> task -> tss.eax = (int) &(key_console -> task -> tss.esp0);
 												key_console -> task -> tss.eip = (int) &asm_end_app;
 												io_sti();
+												while(key_console -> run_out == 0) {
+													task_sleep(task_main);
+												}
 											} else if(key_console && moving_layer -> window -> is_app == 0) {
 												if(moving_layer -> window -> console -> in_app) {
 													io_cli();
 													key_console -> task -> tss.eax = (int) &(key_console -> task -> tss.esp0);
 													key_console -> task -> tss.eip = (int) &asm_end_app;
 													io_sti();
+												}
+												while(key_console -> run_out == 0) {
+													task_sleep(task_main);
 												}
 												struct CONSOLE *console = moving_layer -> window -> console;
 												timer_free(console -> timer);

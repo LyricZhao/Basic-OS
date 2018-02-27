@@ -22,6 +22,7 @@ struct CONSOLE *new_console(void) {
   win_key_on(console -> window);
   layer_ud(console -> window -> layer, dctl -> top - 1);
   console -> in_app = 0;
+  console -> run_out = 1;
   return console;
 }
 
@@ -31,6 +32,7 @@ void console_close(struct LAYER *layer) {
   layer_del(console -> window -> layer);
   struct TASK *task = console -> task;
   task_sleep(task);
+  console -> window -> layer = 0;
   memory_free_4k(memc, task -> cons_stack, 64 * 1024);
   task -> flags = 0;
   return;
@@ -38,7 +40,7 @@ void console_close(struct LAYER *layer) {
 
 void console_key_on(struct CONSOLE *console) {
   key_console = console;
-  *((int *) 0x0fec) = (int) console;
+  // *((int *) 0x0fec) = (int) console;
   return;
 }
 
@@ -241,6 +243,7 @@ void command_handler(struct CONSOLE *console, char *command) {
 
 void console_window_init(struct CONSOLE *console) {
   console -> window = window_alloc();
+  // dprint_int(console -> window);
   window_set(console -> window, "console", 256, 165, -1, 312, 184, 2, 0, console -> task, console, 0);
   make_textbox8(console -> window -> layer, 8, 28, 240, 128, COL8_BLACK);
   return;
@@ -260,7 +263,7 @@ void console_task_init(struct CONSOLE *console) {
   (*task) -> tss.cs = 2 * 8;
   (*task) -> console = console;
   *((int *)((*task) -> tss.esp + 4)) = (int) console;
-  *((int *) 0x0fec) = (int) console;
+  // *((int *) 0x0fec) = (int) console;
   task_run(*task, 2, 2);
   return;
 }
@@ -294,14 +297,19 @@ void command_run(struct CONSOLE *console, char *para) {
       for(int i = 0; i < datsiz; ++ i)
         pro_mem[esp + i] = app_mem[dathrb + i];
       console -> in_app = 1;
+      console -> run_out = 0;
       start_app(0x1b, task -> gdt_sel + 1000 * 8, esp, task -> gdt_sel + 2000 * 8, &(task -> tss.esp0));
       console -> in_app = 0;
       for(int i = 0; i < wctl -> tot; ++ i) {
-        struct WINDOW *window = &wctl -> windows[i];
-        if(window -> task == task && window != console -> window) {
+        struct WINDOW *window = &(wctl -> windows[i]);
+        if(window -> layer == 0) {
+          continue;
+        }
+        if(window -> task == task && (window != (console -> window))) {
           win_del(window);
         }
       }
+    //  dprint_int(times);
       win_key_off(key_window);
       win_key_on(console -> window);
       console_key_on(console);
@@ -312,6 +320,7 @@ void command_run(struct CONSOLE *console, char *para) {
     }
     memory_free_4k(memc, (int) app_mem, file -> size);
   }
+  console -> run_out = 1;
   return;
 }
 

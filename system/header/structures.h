@@ -130,11 +130,10 @@ struct CONSOLE {
 	struct TASK *task;
 	struct TIMER *timer;
 	int cursor_x, cursor_y;
-	char in_app;
+	char in_app, run_out;
 };
 
 /* filesystem.c */
-
 struct FILEINFO {
 	unsigned char name[8], ext[3], type;
 	char reserve[10];
