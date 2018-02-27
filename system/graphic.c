@@ -93,6 +93,18 @@ void init_palette(void) {
 		0x84, 0x84, 0x84
 	};
 	set_palette(0, 15, table_rgb);
+	static unsigned char table_rgb2[216 * 3];
+	for(int b = 0, t; b < 6; ++ b) {
+		for(int g = 0; g < 6; ++ g) {
+			for(int r = 0; r < 6; ++ r) {
+				t = (r + g * 6 + b * 36) * 3;
+				table_rgb2[t + 0] = r * 51;
+				table_rgb2[t + 1] = g * 51;
+				table_rgb2[t + 2] = b * 51;
+			}
+		}
+	}
+	set_palette(16, 231, table_rgb2);
 	return;
 }
 

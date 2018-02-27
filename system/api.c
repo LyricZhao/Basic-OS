@@ -19,9 +19,9 @@ void con_print(struct CONSOLE *con, char *str) {
 }
 
 int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax) {
-  int cs_base = *((int *) 0xfe8);
   struct TASK *task = task_now();
-  struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
+  int cs_base = task -> cs_base;
+  struct CONSOLE *con = task -> console;
   int *reg = &eax + 1;
     /* REG[0] : EDI, REG[1] : ESI, REG[2] : EBP, REG[3] : ESP */
     /* REG[4] : EBX, REG[5] : EDX, REG[6] : ECX, REG[7] : EAX */
@@ -46,9 +46,11 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     // Window
     case 3: {
       struct WINDOW *window = window_alloc();
-      window_set(window, (char *) ecx + cs_base, esi, edi, eax, 100, 50, 2, 1, task);
+      window_set(window, (char *) ecx + cs_base, esi, edi, eax, (blayer -> xsize - esi) >> 1, (blayer -> ysize - edi) >> 1, 2, 1, task, con);
       win_key_off(key_window);
       win_key_on(window);
+      console_key_on(window -> console);
+      layer_ud(window -> layer, dctl -> top - 1);
       reg[7] = (int) window;
       break;
     }
@@ -193,6 +195,22 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
       break;
     }
 
+    case 18: {
+      int sound;
+      if(eax == 0) {
+        sound = io_in8(0x61);
+        io_out8(0x61, sound & 0x0d);
+      } else {
+        sound = 1193180000 / eax;
+        io_out8(0x43, 0xb6);
+        io_out8(0x42, sound & 0xff);
+        io_out8(0x42, sound >> 8);
+        sound = io_in8(0x61);
+        io_out8(0x61, (sound | 0x03) & 0x0f);
+      };
+      break;
+    }
+
     // Unknown Call
     default:
       print_screen(con, "Error in API call\n", 18);
@@ -202,8 +220,8 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
 }
 
 int *inthandler0d(int *esp) {
-  struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
   struct TASK *task = task_now();
+  struct CONSOLE *con = task -> console;
   con_print(con, "\nINT 0D:\nGeneral Protected Exception.\n");
   char esp_info[32];
   sprintf(esp_info, "EIP = %08x\n", esp[11]);
@@ -212,8 +230,8 @@ int *inthandler0d(int *esp) {
 }
 
 int *inthandler0c(int *esp) {
-  struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
   struct TASK *task = task_now();
+  struct CONSOLE *con = task -> console;
   con_print(con, "\nINT 0C:\nStack Exception.\n");
   char esp_info[32];
   sprintf(esp_info, "EIP = %08x\n", esp[11]);

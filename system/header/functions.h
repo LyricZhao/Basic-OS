@@ -129,21 +129,23 @@ struct TASK *task_now(void);
 /* window.c */
 void window_init(void);
 struct WINDOW *window_alloc(void);
-void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task);
+void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task, struct CONSOLE *console);
 void win_key_off(struct WINDOW *window);
 void win_key_on(struct WINDOW *window);
 void win_del(struct WINDOW *window);
 
 /* console.c */
-void console_main(void);
-void console_window_init(void);
-void console_task_init(void);
+struct CONSOLE *new_console(void);
+void console_key_on(struct CONSOLE *console);
+void console_main(struct CONSOLE *console);
+void console_window_init(struct CONSOLE *console);
+void console_task_init(struct CONSOLE *console);
 void move_oneline(unsigned char *img, int xsize);
-void command_handler(struct CONSOLE *con, char *command);
-void print_screen(struct CONSOLE *con, char *str, int len);
-void pf_nline(struct CONSOLE *con);
-void command_clear(struct CONSOLE *con);
-void command_run(struct CONSOLE *con, char *para);
+void command_handler(struct CONSOLE *console, char *command);
+void print_screen(struct CONSOLE *console, char *str, int len);
+void pf_nline(struct CONSOLE *console);
+void command_clear(struct CONSOLE *console);
+void command_run(struct CONSOLE *console, char *para);
 
 /* filesystem.c */
 void FAT_init(void);

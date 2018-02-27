@@ -100,5 +100,8 @@
 # define TASK_FLAGS_ALLOC    1
 # define TASK_FLAGS_USING    2 // Running, not current
 
-/* window.h */
+/* window.c */
 # define MAX_WINDOWS       100
+
+/* console.c */
+# define MAX_CONSOLES      256

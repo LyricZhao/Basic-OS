@@ -23,11 +23,14 @@
 	GLOBAL  _api_win_dw_line
 	GLOBAL  _api_win_refresh_sub
 
-	; TIMERS
+	; Timers
 	GLOBAL  _api_timer_alloc
 	GLOBAL  _api_timer_init
 	GLOBAL  _api_timer_countdown
 	GLOBAL	_api_timer_free
+
+	; Sound
+	GLOBAL 	_api_beep
 
 [SECTION .text]
 
@@ -227,4 +230,10 @@ _api_timer_free:			 ; void api_timer_free(int timer);
 	MOV		EBX, [ESP + 8]
 	INT		0x40
 	POP		EBX
+	RET
+
+_api_beep:	; void api_beep(int hz)
+	MOV		EDX, 18
+	MOV		EAX, [ESP + 4]
+	INT 	0x40
 	RET

@@ -20,7 +20,6 @@ extern struct LYRCTL *dctl;
 struct LAYER *mlayer;
 struct LAYER *blayer;
 unsigned char *blayer_img;
-struct WINDOW *wmain;
 
 /* Window Management */
 extern struct WINDOWCTL *wctl;
@@ -33,9 +32,6 @@ struct TIMER *sys_timer;
 
 /* Event FIFO */
 int event_queue_buf[256];
-
-/* TextBox */
-int cursor_x, cursor_col;
 
 /* Keyboard Table */
 extern char keytable0[0x80];
@@ -50,7 +46,7 @@ struct TASK *task_main;
 struct TASK *idle;
 
 /* Console */
-extern struct CONSOLE console;
+extern struct CONSOLE *key_console;
 
 /* Functions */
 void task_idle(void);
@@ -108,9 +104,6 @@ void HariMain(void) {
 		task_run(idle, MAX_LEVELS - 1, 1);
 	# endif
 
-		// Console Task
-	console_task_init();
-
 	/* GUI Layers */
 	lyrctl_init();
 	window_init();
@@ -123,26 +116,14 @@ void HariMain(void) {
 	layer_move(blayer, 0, 0);
 	layer_ud(blayer, 0);
 
-		// Window Layer
-	wmain = window_alloc();
-	window_set(   wmain,    "main", 160, 52, -1,   8 + 150,  56, 1, 1, 0);
-	win_key_on(wmain);
-
 		// Mouse Layer
 	mlayer = layer_alloc();
 	layer_bset(mlayer, mouse.mcur, 16, 16, COL8_D_GRAY);
 	layer_move(mlayer, mouse.mx, mouse.my);
 	layer_ud(mlayer, 5);
 
-		// TextBox
-	make_textbox8(wmain -> layer, 8, 28, 144, 16, COL8_WHITE);
-	cursor_x = 8, cursor_col = COL8_BLACK;
-
 		// Memory Status
 	memory_dprint();
-
-		// Console
-	console_window_init();
 
 		// Refresh all
 	display_refresh_all();
@@ -154,6 +135,9 @@ void HariMain(void) {
 	sys_timer = timer_alloc();
 	timer_init(sys_timer, &task_main -> fifo, 0);
 	timer_countdown(sys_timer, 100);
+
+	/* Console */
+	key_console = new_console();
 
 	/* Interrupts */
 	for(;;) {
@@ -224,35 +208,30 @@ void kmt_interrupt() {
 							str[0] ^= 32;
 						}
 						switch (str[0]) {
-							// Control + Z
-							case 'z':
-								if(key_window != wmain) {
-									if(console.task -> tss.ss0) {
-										struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
-										con_print(con, "Process Is Terminated.\n");
-										io_cli();
-										console.task -> tss.eax = (int) &(console.task -> tss.esp0);
-										console.task -> tss.eip = (int) &asm_end_app;
-										io_sti();
-									}
+
+							// Control + Z, terminating an app
+							case 'z': {
+								if(key_console && key_console -> task -> tss.ss0) {
+									// struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
+									// con_print(key_console, "Process Is Terminated.\n");
+									io_cli();
+									key_console -> task -> tss.eax = (int) &(key_console -> task -> tss.esp0);
+									key_console -> task -> tss.eip = (int) &asm_end_app;
+									io_sti();
 								}
 								break;
+							}
+
+							// Control + T, a new console
+							case 't': {
+								key_console = new_console();
+							}
+
 							default:
 								break;
 						}
 					} else {
-						if(key_window == wmain) {
-							// System WMain
-							if(cursor_x < 144) {
-								str[1] = 0;
-								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, str);
-								cursor_x += 8;
-								boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
-								display_refresh_layer_sub(wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
-							}
-						} else{
-							fifo32_push(&(key_window -> layer -> task -> fifo), str[0] << 16);
-						}
+						fifo32_push(&(key_window -> layer -> task -> fifo), str[0] << 16);
 					}
 					break;
 				}
@@ -260,16 +239,7 @@ void kmt_interrupt() {
 				switch (itype1) {
 					// BackSpace - SKey
 					case 0x0e:
-						if(key_window == wmain) {
-							if(cursor_x > 8) {
-								putfont_ascii_in_layer(wmain -> layer, cursor_x, 28, COL8_BLACK, COL8_WHITE, " ");
-								cursor_x -= 8;
-								boxfill8(wmain -> layer -> img, wmain -> layer -> xsize, cursor_col, cursor_x, 28, cursor_x + 7, 43);
-								display_refresh_layer_sub(wmain -> layer, cursor_x, 28, cursor_x + 8, 44);
-							}
-						} else {
-							fifo32_push(&(key_window -> layer -> task -> fifo), 8 << 16);
-						}
+						fifo32_push(&(key_window -> layer -> task -> fifo), 8 << 16);
 						break;
 
 					// Tab - GKey
@@ -281,6 +251,7 @@ void kmt_interrupt() {
 							if(window -> layer) {
 								if(flag) {
 									win_key_on(window);
+									console_key_on(window -> console);
 									layer_ud(window -> layer, dctl -> top - 1);
 									break;
 								} else if(window == key_window) {
@@ -318,9 +289,7 @@ void kmt_interrupt() {
 
 					// Enter - SKey
 					case 0x1c:
-						if(key_window != wmain) {
-							fifo32_push(&(key_window -> layer -> task -> fifo), 10 << 16);
-						}
+						fifo32_push(&(key_window -> layer -> task -> fifo), 10 << 16);
 
 					// Send OK - PKey
 					case 0xfa:
@@ -388,19 +357,20 @@ void kmt_interrupt() {
 									if(moving_layer -> img[y * moving_layer -> xsize + y] != moving_layer -> icol) {
 										win_key_off(key_window);
 										win_key_on(moving_layer -> window);
+										console_key_on(moving_layer -> window -> console);
 										layer_ud(moving_layer, dctl -> top - 1);
 										if((3 <= x && x < moving_layer -> xsize - 3) && (3 <= y && y < 21)) {
 											mdec.mmx = mouse.mx;
 											mdec.mmy = mouse.my;
 										}
 										if((5 <= x && x < 21) && (5 <= y && y < 19)) {
-											if(moving_layer -> task != 0) {
+											if(key_console && moving_layer -> task != 0) {
 												mdec.mmx = -1;
-												struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
-												con_print(con, "Process Is Terminated.(By Mouse)\n");
+												// struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
+												// con_print(key_console, "Process Is Terminated.(By Mouse)\n");
 												io_cli();
-												console.task -> tss.eax = (int) &(console.task -> tss.esp0);
-												console.task -> tss.eip = (int) &asm_end_app;
+												key_console -> task -> tss.eax = (int) &(key_console -> task -> tss.esp0);
+												key_console -> task -> tss.eip = (int) &asm_end_app;
 												io_sti();
 											}
 										}

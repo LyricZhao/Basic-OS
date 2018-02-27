@@ -14,7 +14,7 @@ void window_init(void) {
   return;
 }
 
-void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task) {
+void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task, struct CONSOLE *console) {
   window -> img = (unsigned char *) memory_alloc_4k(memc, xsize * ysize);
   window -> layer = layer_alloc();
   window -> layer -> window = window;
@@ -25,6 +25,7 @@ void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int ic
   layer_ud(window -> layer, height);
   window -> task = task;
   window -> layer -> task = task;
+  window -> console = console;
   return;
 }
 

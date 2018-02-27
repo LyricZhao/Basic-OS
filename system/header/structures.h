@@ -66,6 +66,8 @@ struct TASK {
 	int priority, level;
 	struct TSS32 tss;
 	struct FIFO32 fifo;
+	struct CONSOLE *console;
+	int cs_base;
 };
 
 struct TASKLV {
@@ -114,6 +116,7 @@ struct WINDOW {
 	unsigned char *img;
 	char title[32];
 	struct TASK *task;
+	struct CONSOLE *console;
 };
 
 struct WINDOWCTL{
