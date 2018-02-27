@@ -20,11 +20,15 @@ void HariMain(void) {
 		api_win_dw_line(win, 88, 26, i * 9 + 88, 89, i);
 	}
 	api_win_refresh_sub(win, 6, 26, 154, 94);
+	int timer = api_timer_alloc();
+	api_timer_init(timer, 2);
+	api_timer_countdown(timer, 300);
 	for(;;) {
-		if(api_getkey(1) == 0x0a) {
+		if(api_getkey(1) == ((3 << 24) | (2 << 16))) {
 			break;
 		}
 	}
+	api_timer_free(timer);
 	api_win_close(win);
 	api_end();
 }

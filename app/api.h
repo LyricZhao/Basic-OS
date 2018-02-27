@@ -1,5 +1,4 @@
 /* System API */
-
 char* api_malloc(int size);
  void api_memory_init(void);
  void api_free(char *addr, int size);
@@ -18,3 +17,9 @@ void api_win_refresh_sub(int win, int x0, int y0, int x1, int y1);
 /* Console API */
 void api_putchar(char c);
 void api_print(char *str);
+
+/* Timer API */
+int api_timer_alloc(void);
+int api_timer_init(int timer, int data);
+int api_timer_countdown(int timer, int time);
+void api_timer_free(int timer);

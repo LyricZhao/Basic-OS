@@ -23,6 +23,12 @@
 	GLOBAL  _api_win_dw_line
 	GLOBAL  _api_win_refresh_sub
 
+	; TIMERS
+	GLOBAL  _api_timer_alloc
+	GLOBAL  _api_timer_init
+	GLOBAL  _api_timer_countdown
+	GLOBAL	_api_timer_free
+
 [SECTION .text]
 
 _api_win_open: ; void api_win_open(int xsize, int ysize, int icol, char *title)
@@ -191,3 +197,34 @@ _api_getkey:	; int api_getkey(int mode)
 _api_end:	; void api_end(void)
 	MOV		EDX, 0
 	INT		0x40
+
+_api_timer_alloc:      ; int api_timer_alloc(void);
+	MOV		EDX, 14
+	INT		0x40
+	RET
+
+_api_timer_init:   		 ; void api_timer_init(int timer, int data);
+	PUSH	EBX
+	MOV		EDX, 15
+	MOV		EBX, [ESP + 8]
+	MOV		EAX, [ESP + 12]
+	INT 	0x40
+	POP		EBX
+	RET
+
+_api_timer_countdown:  ; void api_timer_countdown(int timer, int time);
+	PUSH	EBX
+	MOV		EDX, 16
+	MOV 	EBX, [ESP + 8]
+	MOV		EAX, [ESP + 12]
+	INT 	0x40
+	POP		EBX
+	RET
+
+_api_timer_free:			 ; void api_timer_free(int timer);
+	PUSH	EBX
+	MOV		EDX, 17
+	MOV		EBX, [ESP + 8]
+	INT		0x40
+	POP		EBX
+	RET
