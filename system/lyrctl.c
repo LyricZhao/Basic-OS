@@ -110,12 +110,13 @@ void display_refresh_all(void) {
   int tc, pos, lid;
   unsigned char col, *buf;
   for(int h = 0; h <= dctl -> top; ++ h) {
-    tc  = dctl -> layers[h] -> icol;
-    buf = dctl -> layers[h] -> img;
-    lid = dctl -> layers[h] - dctl -> layers0;
-    for(int i = 0; i < dctl -> layers[h] -> ysize; ++ i) for(int j = 0;j < dctl -> layers[h]-> xsize; ++ j) {
-      col = buf[i * dctl -> layers[h] -> xsize + j];
-      pos = (dctl -> layers[h]-> y0 + i) * dctl -> xsize + dctl -> layers[h]-> x0 + j;
+    struct LAYER *layer = dctl -> layers[h];
+    tc  = layer -> icol;
+    buf = layer -> img;
+    lid = layer - dctl -> layers0;
+    for(int i = 0; i < layer -> ysize; ++ i) for(int j = 0;j < layer -> xsize; ++ j) {
+      col = buf[i * layer -> xsize + j];
+      pos = (layer -> y0 + i) * dctl -> xsize + layer -> x0 + j;
       if(dctl -> map[pos] == lid)
         dctl -> vram[pos] = col;
     }
@@ -129,6 +130,7 @@ void display_refresh_layer_sub(struct LAYER *layer, int x0, int y0, int x1, int 
   return;
 }
 
+/*
 void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
   unsigned char col, *buf;
   int tc, bx0, by0, bx1, by1, lid, pos;
@@ -150,26 +152,107 @@ void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
     }
   }
   return;
+}*/
+
+void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
+  unsigned char col, *buf, *mmp, *mmv, *mmb;
+  int *iip, *iiv, *iib;
+  int tc, bx0, by0, bx1, by1, lid, pos, sid, len, len2;
+  for(int h = h0; h <= h1; ++ h) {
+    struct LAYER *layer = dctl -> layers[h];
+    tc  = layer -> icol;
+    bx0 = imax(x0, layer -> x0);
+    by0 = imax(y0, layer -> y0);
+    bx1 = imin(x1, layer -> x0 + layer -> xsize);
+    by1 = imin(y1, layer -> y0 + layer -> ysize);
+    bx0 = imin(bx0, dctl -> xsize), by0 = imin(by0, dctl -> ysize);
+    bx1 = imin(bx1, dctl -> xsize), by1 = imin(by1, dctl -> ysize);
+    buf = layer -> img;
+    lid = layer - dctl -> layers0;
+    sid = lid | lid << 8 | lid << 16 | lid << 24;
+    /*
+    for(int i = by0; i < by1; ++ i) for(int j = bx0; j < bx1; ++ j) {
+      col = buf[(i - layer -> y0) * layer -> xsize + j - layer -> x0];
+      pos = i * dctl -> xsize + j;
+      if(mmp[pos] == lid)
+        mmv[pos] = col;
+    }
+    */
+
+    if(bx1 <= bx0) {
+      continue;
+    }
+    for(int i = by0; i < by1; ++ i) {
+      pos = i * dctl -> xsize + bx0;
+      mmp = dctl -> map + pos;
+      mmv = dctl -> vram + pos;
+      mmb = buf + (i - layer -> y0) * layer -> xsize + bx0 - layer -> x0;
+      iip = (int *) mmp;
+      iiv = (int *) mmv;
+      iib = (int *) mmb;
+      len = bx1 - bx0;
+      len2 = len >> 2;
+      for(int j = 0; j < len2; ++ j) {
+        if(iip[j] == sid) {
+          iiv[j] = iib[j];
+        } else {
+          for(int k = 0; k < 4; ++ k) {
+            if(mmp[(j << 2) | k] == lid) {
+              mmv[(j << 2) | k] = mmb[(j << 2) | k];
+            }
+          }
+        }
+      }
+      len &= 3;
+      for(int j = 1; j <= len; ++ j) {
+        if(mmp[bx1 - j - bx0] == lid) {
+          mmv[bx1 - j - bx0] = mmb[bx1 - j - bx0];
+        }
+      }
+    }
+  }
+  return;
 }
 
 void map_refresh_sub(int x0, int y0, int x1, int y1, int h0) {
-  unsigned char col, *buf;
-  int tc, lid, bx0, by0, bx1, by1;
+  unsigned char col, *buf, *mmp;
+  int tc, lid, bx0, by0, bx1, by1, sid, len, len2;
   for(int h = h0; h <= dctl -> top; ++ h) {
-    tc  = dctl -> layers[h] -> icol;
-    lid = dctl -> layers[h] - dctl -> layers0;
-    buf = dctl -> layers[h] -> img;
-    bx0 = imax(x0, dctl -> layers[h] -> x0);
-    by0 = imax(y0, dctl -> layers[h] -> y0);
-    bx1 = imin(x1, dctl -> layers[h] -> x0 + dctl -> layers[h] -> xsize);
-    by1 = imin(y1, dctl -> layers[h] -> y0 + dctl -> layers[h] -> ysize);
+    struct LAYER *layer = dctl -> layers[h];
+    tc  = layer -> icol;
+    lid = layer - dctl -> layers0;
+    buf = layer -> img;
+    bx0 = imax(x0, layer -> x0);
+    by0 = imax(y0, layer -> y0);
+    bx1 = imin(x1, layer -> x0 + layer -> xsize);
+    by1 = imin(y1, layer -> y0 + layer -> ysize);
     bx0 = imin(bx0, dctl -> xsize), by0 = imin(by0, dctl -> ysize);
     bx1 = imin(bx1, dctl -> xsize), by1 = imin(by1, dctl -> ysize);
-    for(int i = by0; i < by1; ++ i) for(int j = bx0; j < bx1; ++ j) {
-      col = buf[(i - dctl -> layers[h] -> y0) * dctl -> layers[h] -> xsize + j - dctl -> layers[h] -> x0];
-      if(tc == -1 || col != tc)
-        dctl -> map[i * dctl -> xsize + j] = lid;
+    mmp = dctl -> map;
+    if(tc == -1) {
+      sid = lid | lid << 8 | lid << 16 | lid << 24;
+      for(int i = by0; i < by1; ++ i) {
+        int *img = (int *)(dctl -> map + i * dctl -> xsize + bx0);
+        len = bx1 - bx0; len2 = len >> 2;
+        if(bx1 <= bx0) {
+          continue;
+        }
+        for(int j = 0; j < len2; ++ j) {
+          img[j] = sid;
+        }
+        len &= 3;
+        for(int j = 1; j <= len; ++ j) {
+          mmp[i * dctl -> xsize + bx1 - j] = lid;
+        }
+      }
+    } else {
+      for(int i = by0; i < by1; ++ i) for(int j = bx0; j < bx1; ++ j) {
+        col = buf[(i - layer -> y0) * layer -> xsize + j - layer -> x0];
+        if(col != tc)
+          mmp[i * dctl -> xsize + j] = lid;
+      }
     }
+
   }
   return;
 }
