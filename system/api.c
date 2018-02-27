@@ -46,7 +46,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     // Window
     case 3: {
       struct WINDOW *window = window_alloc();
-      window_set(window, (char *) ecx + cs_base, esi, edi, eax, (blayer -> xsize - esi) >> 1, (blayer -> ysize - edi) >> 1, 2, 1, task, con);
+      window_set(window, (char *) ecx + cs_base, esi, edi, eax, (blayer -> xsize - esi) >> 1, (blayer -> ysize - edi) >> 1, 2, 1, task, con, 1);
       win_key_off(key_window);
       win_key_on(window);
       console_key_on(window -> console);

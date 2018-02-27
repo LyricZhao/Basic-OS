@@ -167,6 +167,8 @@ void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
     by1 = imin(y1, layer -> y0 + layer -> ysize);
     bx0 = imin(bx0, dctl -> xsize), by0 = imin(by0, dctl -> ysize);
     bx1 = imin(bx1, dctl -> xsize), by1 = imin(by1, dctl -> ysize);
+    if(bx0 < 0) bx0 = 0;
+    if(by0 < 0) by0 = 0;
     buf = layer -> img;
     lid = layer - dctl -> layers0;
     sid = lid | lid << 8 | lid << 16 | lid << 24;
@@ -178,7 +180,6 @@ void display_refresh_sub(int x0, int y0, int x1, int y1, int h0, int h1) {
         mmv[pos] = col;
     }
     */
-
     if(bx1 <= bx0) {
       continue;
     }
@@ -228,15 +229,17 @@ void map_refresh_sub(int x0, int y0, int x1, int y1, int h0) {
     by1 = imin(y1, layer -> y0 + layer -> ysize);
     bx0 = imin(bx0, dctl -> xsize), by0 = imin(by0, dctl -> ysize);
     bx1 = imin(bx1, dctl -> xsize), by1 = imin(by1, dctl -> ysize);
+    if(bx0 < 0) bx0 = 0;
+    if(by0 < 0) by0 = 0;
     mmp = dctl -> map;
+    if(bx1 <= bx0) {
+      continue;
+    }
     if(tc == -1) {
       sid = lid | lid << 8 | lid << 16 | lid << 24;
       for(int i = by0; i < by1; ++ i) {
         int *img = (int *)(dctl -> map + i * dctl -> xsize + bx0);
         len = bx1 - bx0; len2 = len >> 2;
-        if(bx1 <= bx0) {
-          continue;
-        }
         for(int j = 0; j < len2; ++ j) {
           img[j] = sid;
         }

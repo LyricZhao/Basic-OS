@@ -364,7 +364,7 @@ void kmt_interrupt() {
 											mdec.mmy = mouse.my;
 										}
 										if((5 <= x && x < 21) && (5 <= y && y < 19)) {
-											if(key_console && moving_layer -> task != 0) {
+											if(key_console && moving_layer -> task != 0 && moving_layer -> window -> is_app) {
 												mdec.mmx = -1;
 												// struct CONSOLE *con = (struct CONSOLE *) *((int *) 0x0fec);
 												// con_print(key_console, "Process Is Terminated.(By Mouse)\n");
@@ -372,6 +372,17 @@ void kmt_interrupt() {
 												key_console -> task -> tss.eax = (int) &(key_console -> task -> tss.esp0);
 												key_console -> task -> tss.eip = (int) &asm_end_app;
 												io_sti();
+											} else if(key_console && moving_layer -> window -> is_app == 0) {
+												if(moving_layer -> window -> console -> in_app) {
+													io_cli();
+													key_console -> task -> tss.eax = (int) &(key_console -> task -> tss.esp0);
+													key_console -> task -> tss.eip = (int) &asm_end_app;
+													io_sti();
+												}
+												struct CONSOLE *console = moving_layer -> window -> console;
+												timer_free(console -> timer);
+												task_sleep(console -> task);
+												console_close(moving_layer);
 											}
 										}
 										break;
@@ -397,6 +408,11 @@ void kmt_interrupt() {
 					putfont_ascii_in_layer(blayer, 0, 64, COL8_BLACK, COL8_WHITE, str);
 					timer_countdown(sys_timer, 100);
 				break;
+
+			case 3: {
+				console_close(dctl -> layers0 + itype1);
+				break;
+			}
 
 			/* Exception */
 			default:

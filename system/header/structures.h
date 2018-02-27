@@ -67,7 +67,7 @@ struct TASK {
 	struct TSS32 tss;
 	struct FIFO32 fifo;
 	struct CONSOLE *console;
-	int cs_base;
+	int cs_base, cons_stack;
 };
 
 struct TASKLV {
@@ -114,7 +114,7 @@ struct TIMERCTL {
 struct WINDOW {
 	struct LAYER *layer;
 	unsigned char *img;
-	char title[32];
+	char title[32], is_app;
 	struct TASK *task;
 	struct CONSOLE *console;
 };
@@ -130,6 +130,7 @@ struct CONSOLE {
 	struct TASK *task;
 	struct TIMER *timer;
 	int cursor_x, cursor_y;
+	char in_app;
 };
 
 /* filesystem.c */

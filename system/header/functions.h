@@ -129,13 +129,14 @@ struct TASK *task_now(void);
 /* window.c */
 void window_init(void);
 struct WINDOW *window_alloc(void);
-void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task, struct CONSOLE *console);
+void window_set(struct WINDOW *window, char *title, int xsize, int ysize, int icol, int mx, int my, int height, int ws, struct TASK *task, struct CONSOLE *console, char isa);
 void win_key_off(struct WINDOW *window);
 void win_key_on(struct WINDOW *window);
 void win_del(struct WINDOW *window);
 
 /* console.c */
 struct CONSOLE *new_console(void);
+void console_close(struct LAYER *layer);
 void console_key_on(struct CONSOLE *console);
 void console_main(struct CONSOLE *console);
 void console_window_init(struct CONSOLE *console);
@@ -146,6 +147,7 @@ void print_screen(struct CONSOLE *console, char *str, int len);
 void pf_nline(struct CONSOLE *console);
 void command_clear(struct CONSOLE *console);
 void command_run(struct CONSOLE *console, char *para);
+void command_exit(struct CONSOLE *console);
 
 /* filesystem.c */
 void FAT_init(void);

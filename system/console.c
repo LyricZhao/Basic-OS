@@ -21,7 +21,19 @@ struct CONSOLE *new_console(void) {
   win_key_off(key_window);
   win_key_on(console -> window);
   layer_ud(console -> window -> layer, dctl -> top - 1);
+  console -> in_app = 0;
   return console;
+}
+
+void console_close(struct LAYER *layer) {
+  struct CONSOLE *console = layer -> window -> console;
+  memory_free_4k(memc, (unsigned int)console -> window -> img, 256 * 165);
+  layer_del(console -> window -> layer);
+  struct TASK *task = console -> task;
+  task_sleep(task);
+  memory_free_4k(memc, task -> cons_stack, 64 * 1024);
+  task -> flags = 0;
+  return;
 }
 
 void console_key_on(struct CONSOLE *console) {
@@ -219,6 +231,8 @@ void command_handler(struct CONSOLE *console, char *command) {
     command_cat(console, para);
   } else if(strcmp(com, "run") == 0){
     command_run(console, para);
+  } else if(strcmp(com, "exit") == 0) {
+    command_exit(console);
   } else {
     print_screen(console, "No such command.\n", 17);
   }
@@ -227,7 +241,7 @@ void command_handler(struct CONSOLE *console, char *command) {
 
 void console_window_init(struct CONSOLE *console) {
   console -> window = window_alloc();
-  window_set(console -> window, "console", 256, 165, -1, 312, 184, 2, 0, console -> task, console);
+  window_set(console -> window, "console", 256, 165, -1, 312, 184, 2, 0, console -> task, console, 0);
   make_textbox8(console -> window -> layer, 8, 28, 240, 128, COL8_BLACK);
   return;
 }
@@ -235,7 +249,8 @@ void console_window_init(struct CONSOLE *console) {
 void console_task_init(struct CONSOLE *console) {
   struct TASK **task = &(console -> task);
   *task = task_alloc();
-  (*task) -> tss.esp = memory_alloc_4k(memc, 64 * 1024) + 64 * 1024 - 8;
+  (*task) -> cons_stack = memory_alloc_4k(memc, 64 * 1024);
+  (*task) -> tss.esp = (*task) -> cons_stack + 64 * 1024 - 8;
   (*task) -> tss.eip = (int) &console_main;
   (*task) -> tss.es = 1 * 8;
   (*task) -> tss.ss = 1 * 8;
@@ -278,7 +293,9 @@ void command_run(struct CONSOLE *console, char *para) {
       set_segmdesc(gdt + task -> gdt_sel / 8 + 2000,       segsiz - 1, (int)pro_mem, AR_DATA32_RW + 0x60);
       for(int i = 0; i < datsiz; ++ i)
         pro_mem[esp + i] = app_mem[dathrb + i];
+      console -> in_app = 1;
       start_app(0x1b, task -> gdt_sel + 1000 * 8, esp, task -> gdt_sel + 2000 * 8, &(task -> tss.esp0));
+      console -> in_app = 0;
       for(int i = 0; i < wctl -> tot; ++ i) {
         struct WINDOW *window = &wctl -> windows[i];
         if(window -> task == task && window != console -> window) {
@@ -294,6 +311,20 @@ void command_run(struct CONSOLE *console, char *para) {
       print_screen(console, "Error: not a standard executable file.\n", 39);
     }
     memory_free_4k(memc, (int) app_mem, file -> size);
+  }
+  return;
+}
+
+extern struct TASK *task_main;
+
+void command_exit(struct CONSOLE *console) {
+  timer_free(console -> timer);
+  struct FIFO32 *fifo = &(task_main -> fifo);
+  io_cli();
+  fifo32_push(fifo, (3 << 24) | ((console -> window -> layer - dctl -> layers0) << 16));
+  io_sti();
+  for(;;) {
+    task_sleep(console -> task);
   }
   return;
 }
