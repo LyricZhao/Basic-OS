@@ -7,6 +7,7 @@ struct CONSOLE econs[MAX_CONSOLES];
 int cons_tot;
 struct CONSOLE *key_console;
 
+extern struct TASK *task_main;
 extern struct MEM_MANAGER *memc;
 extern struct LYRCTL *dctl;
 extern struct LAYER *blayer;
@@ -100,7 +101,7 @@ void console_main(struct CONSOLE *console) {
 
             // BackSpace
             case 0x08:
-              if(console -> cursor_x > 16) {
+              if(command_len && console -> cursor_x > 16) {
                 -- command_len;
                 putfont_ascii_in_layer(layer, console -> cursor_x, console -> cursor_y, COL8_WHITE, COL8_BLACK, " ");
                 console -> cursor_x -= 8;
@@ -321,6 +322,7 @@ void command_run(struct CONSOLE *console, char *para) {
     memory_free_4k(memc, (int) app_mem, file -> size);
   }
   console -> run_out = 1;
+  fifo32_push(&(task_main -> fifo), 0x23);
   return;
 }
 

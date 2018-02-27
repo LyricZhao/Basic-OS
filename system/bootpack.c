@@ -415,8 +415,14 @@ void kmt_interrupt() {
 					timer_countdown(sys_timer, 100);
 				break;
 
+			/* Console Close */
 			case 3: {
 				console_close(dctl -> layers0 + itype1);
+				break;
+			}
+
+			/* Wake Up */
+			case 0x23: {
 				break;
 			}
 
