@@ -20,6 +20,6 @@ void api_print(char *str);
 
 /* Timer API */
 int api_timer_alloc(void);
-int api_timer_init(int timer, int data);
-int api_timer_countdown(int timer, int time);
+void api_timer_init(int timer, int data);
+void api_timer_countdown(int timer, int time);
 void api_timer_free(int timer);
