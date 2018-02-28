@@ -147,7 +147,7 @@ int decode0_JPEG(struct DLL_STRPICENV *env,int size, UCHAR *fp0, int b_type, UCH
 
 unsigned short get_bits(JPEG *jpeg, int bit)
 {
-	unsigned char  c, c2;
+	unsigned char  c;
 	unsigned short ret;
 	unsigned long  buff;
 	int remain;
@@ -223,7 +223,7 @@ err:
 int jpeg_dqt(JPEG *jpeg)
 {
 	unsigned char c;
-	int i, j, v, size;
+	int i, j, size;
 
 	if (jpeg->fp + 2 > jpeg->fp1)
 		goto err;
@@ -266,7 +266,7 @@ int jpeg_dht(JPEG *jpeg)
 	unsigned code = 0;
 	unsigned char val;
 	int i, j, k, num, Li[17];
-	int len, max_val;
+	int len;
 	HUFF *table;
 
 	if (jpeg->fp + 2 > jpeg->fp1)
@@ -537,7 +537,7 @@ int jpeg_get_value(JPEG *jpeg,int size)
 // ƒnƒtƒ}ƒ“ƒfƒR[ƒh{‹t—ÊŽq‰»{‹tƒWƒOƒUƒO
 int jpeg_decode_huff(JPEG *jpeg,int scan,int *block, UCHAR *zigzag_table)
 {
-    int size, len, val, run, index;
+    int size, val, run, index;
     int *pQt = (int *)(jpeg->dqt[jpeg->scan_qt[scan]]);
 
     // DC
@@ -587,7 +587,7 @@ void jpeg_mcu_bitblt(int *src, int *dest, int width,
                      int x0, int y0, int x1, int y1)
 {
 	int w, h;
-	int x, y, x2, y2;
+	int x, y, y2;
 	w = x1 - x0;
 	h = y1 - y0;
 	dest += y0 * width + x0;
@@ -605,7 +605,7 @@ void jpeg_mcu_bitblt(int *src, int *dest, int width,
 int jpeg_decode_mcu(JPEG *jpeg, UCHAR *zigzag_table)
 {
 	int scan, val;
-	int unit, i, h, v;
+	int h, v;
 	int *p, hh, vv;
 	int block[64], dest[64];
 
@@ -634,7 +634,7 @@ int jpeg_decode_mcu(JPEG *jpeg, UCHAR *zigzag_table)
 					jpeg->mcu_width * (h + 1) / hh, jpeg->mcu_height * (v + 1) / vv);
 			}
 		}
-	}
+	} return 0;
 }
 
 // YCrCb=>RGB
@@ -645,7 +645,7 @@ int jpeg_decode_yuv(JPEG *jpeg, int h, int v, unsigned char *rgb, int b_type)
 	int *py;
 	int Y12, V;
 	int mw, mh, w;
-	int i;
+	// int i;
 
 	mw = jpeg->mcu_width;
 	mh = jpeg->mcu_height;
@@ -702,7 +702,7 @@ int jpeg_decode_yuv(JPEG *jpeg, int h, int v, unsigned char *rgb, int b_type)
 		py += mw - x1;
 		rgb += w;
 	}
-	return;
+	return 0;
 }
 
 #define INIT_ZTABLE(i, b0, b1, b2, b3)	*(int *) &zigzag_table[i] = b0 | b1 << 8 | b2 << 16 | b3 << 24
@@ -711,8 +711,8 @@ void jpeg_decode(JPEG *jpeg, UCHAR *rgb, int b_type)
 {
 	int h_unit, v_unit;
 	int mcu_count, h, v;
-	int val;
-	unsigned char m;
+	// int val;
+	// unsigned char m;
 
     UCHAR zigzag_table[64];
 
