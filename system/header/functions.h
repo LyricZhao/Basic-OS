@@ -165,3 +165,11 @@ void con_print(struct CONSOLE *con, char *str);
 int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax);
 int *inthandler0d(int *esp);
 int *inthandler0c(int *esp);
+
+/* jpeg.c - Open Source */
+int info_JPEG(struct DLL_STRPICENV *env, int *info, int size, char *fp);
+int decode0_JPEG(struct DLL_STRPICENV *enc, int size, char *fp, int b_type, char *buf, int skip);
+
+/* desktop.c */
+unsigned char rgb2pal(int r, int g, int b, int x, int y);
+void load_desktop(void);

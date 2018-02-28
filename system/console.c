@@ -6,6 +6,7 @@
 struct CONSOLE econs[MAX_CONSOLES];
 int cons_tot;
 struct CONSOLE *key_console;
+int now_running_con;
 
 extern struct TASK *task_main;
 extern struct MEM_MANAGER *memc;
@@ -15,6 +16,7 @@ extern struct WINDOWCTL *wctl;
 extern struct WINDOW *key_window;
 
 struct CONSOLE *new_console(void) {
+  ++ now_running_con;
   struct CONSOLE *console = &econs[cons_tot ++];
   console_task_init(console);
   console_window_init(console);
@@ -36,6 +38,10 @@ void console_close(struct LAYER *layer) {
   console -> window -> layer = 0;
   memory_free_4k(memc, task -> cons_stack, 64 * 1024);
   task -> flags = 0;
+  now_running_con --;
+  if(!now_running_con) {
+    key_console = 0;
+  }
   return;
 }
 

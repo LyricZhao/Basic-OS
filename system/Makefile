@@ -18,7 +18,7 @@ QEMU     = /usr/local/bin/qemu-system-x86_64
 OBJS_BOOTPACK = bootpack.obj naskfunc.obj hankaku.obj graphic.obj \
 	dsctbl.obj int.obj fifo.obj debuger.obj keyboard.obj memory.obj \
 	mouse.obj timer.obj utility.obj lyrctl.obj api.obj console.obj \
-	filesystem.obj multitask.obj window.obj
+	filesystem.obj multitask.obj window.obj desktop.obj jpeg.obj
 
 default :
 	$(MAKE) img
@@ -61,7 +61,7 @@ haribote.img : ipl10.bin haribote.sys fileT.txt app.bex Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \
-		copy from:fileT.txt to:@: \
+		copy from:desktop.jpg to:@: \
 		copy from:app.bex to:@:\
 		imgout:haribote.img
 

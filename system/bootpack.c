@@ -128,6 +128,9 @@ void HariMain(void) {
 		// Refresh all
 	display_refresh_all();
 
+	/* Desktop */
+	load_desktop();
+
 	/* Interrupt Event Queue Initialization */
 	fifo32_init(&task_main -> fifo, 256, event_queue_buf, task_main);
 
@@ -137,7 +140,7 @@ void HariMain(void) {
 	timer_countdown(sys_timer, 100);
 
 	/* Console */
-	key_console = new_console();
+	key_console = 0; // new_console();
 
 	/* Interrupts */
 	for(;;) {
@@ -230,7 +233,7 @@ void kmt_interrupt() {
 							default:
 								break;
 						}
-					} else {
+					} else if(key_console){
 						fifo32_push(&(key_window -> layer -> task -> fifo), str[0] << 16);
 					}
 					break;
@@ -239,28 +242,32 @@ void kmt_interrupt() {
 				switch (itype1) {
 					// BackSpace - SKey
 					case 0x0e:
-						fifo32_push(&(key_window -> layer -> task -> fifo), 8 << 16);
+						if(key_console) {
+							fifo32_push(&(key_window -> layer -> task -> fifo), 8 << 16);
+						}
 						break;
 
 					// Tab - GKey
 					case 0x0f: { // Note Here: {} must be here to define the domain of the variable allocated after 'case'
-						win_key_off(key_window);
-						char flag = 0;
-						for(int i = 0;;) {
-							struct WINDOW *window = &(wctl -> windows[i]);
-							if(window -> layer) {
-								if(flag) {
-									win_key_on(window);
-									console_key_on(window -> console);
-									layer_ud(window -> layer, dctl -> top - 1);
-									break;
-								} else if(window == key_window) {
-									flag = 1;
+						if(key_console) {
+							win_key_off(key_window);
+							char flag = 0;
+							for(int i = 0;;) {
+								struct WINDOW *window = &(wctl -> windows[i]);
+								if(window -> layer) {
+									if(flag) {
+										win_key_on(window);
+										console_key_on(window -> console);
+										layer_ud(window -> layer, dctl -> top - 1);
+										break;
+									} else if(window == key_window) {
+										flag = 1;
+									}
 								}
-							}
-							++ i;
-							if(i == wctl -> tot) {
-								i = 0;
+								++ i;
+								if(i == wctl -> tot) {
+									i = 0;
+								}
 							}
 						}
 						break;
@@ -289,7 +296,10 @@ void kmt_interrupt() {
 
 					// Enter - SKey
 					case 0x1c:
-						fifo32_push(&(key_window -> layer -> task -> fifo), 10 << 16);
+						if(key_console) {
+							fifo32_push(&(key_window -> layer -> task -> fifo), 10 << 16);
+						}
+						break;
 
 					// Send OK - PKey
 					case 0xfa:
@@ -411,7 +421,7 @@ void kmt_interrupt() {
 			/* Timer Interrupt */
 			case 2:
 					sprintf(str, "%03d[SEC]", ++ current_time);
-					putfont_ascii_in_layer(blayer, 0, 64, COL8_BLACK, COL8_WHITE, str);
+					putfont_ascii_in_layer(blayer, 0, 32, COL8_BLACK, COL8_WHITE, str);
 					timer_countdown(sys_timer, 100);
 				break;
 
