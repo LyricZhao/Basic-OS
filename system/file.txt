@@ -1,0 +1,4 @@
+A "cat" test file.
+LINE 2
+LINE 3
+## end

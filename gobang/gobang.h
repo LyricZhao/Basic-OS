@@ -1,0 +1,16 @@
+//void print();
+void initial();
+//int put(int color);
+int check_h();
+int check_v();
+int check_dia();
+int check_anti_dia();
+int check();
+//void buildGUI();
+int buildMap();
+void drawchess(int win, int pi, int pj, int color);
+void onestep(int win, int color);
+void winning(int win, int color);
+void writestr(int win, char * str, int len);
+int getinput(int key);
+int char_to_num(int input);

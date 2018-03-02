@@ -148,6 +148,8 @@ void pf_nline(struct CONSOLE *console);
 void command_clear(struct CONSOLE *console);
 void command_run(struct CONSOLE *console, char *para);
 void command_exit(struct CONSOLE *console);
+void command_help(struct CONSOLE *console);
+void command_chelp(struct CONSOLE *console);
 
 /* filesystem.c */
 void FAT_init(void);

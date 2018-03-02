@@ -53,16 +53,18 @@ bootpack.hrb : bootpack.bim Makefile
 # .sys
 
 haribote.sys : asmhead.bin bootpack.hrb Makefile
-	cat asmhead.bin bootpack.hrb > haribote.sys
+	cat asmhead.bin bootpack.hrb > system.sys
 
 # .img
 
-haribote.img : ipl10.bin haribote.sys fileT.txt app.bex Makefile
+haribote.img : ipl10.bin haribote.sys file.txt app.bex gobang.bex Makefile
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
-		copy from:haribote.sys to:@: \
+		copy from:system.sys to:@: \
+		copy from:file.txt to:@: \
 		copy from:desktop.jpg to:@: \
 		copy from:app.bex to:@:\
+		copy from:gobang.bex to:@:\
 		imgout:haribote.img
 
 # General

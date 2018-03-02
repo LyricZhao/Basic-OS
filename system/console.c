@@ -2,6 +2,7 @@
 
 # include <stdio.h>
 # include <string.h>
+# include <stdlib.h>
 
 struct CONSOLE econs[MAX_CONSOLES];
 int cons_tot;
@@ -88,7 +89,6 @@ void console_main(struct CONSOLE *console) {
   timer_countdown(timer, 50);
   int dat, itype0, itype1, ntot = 0; char cstr[32];
   putfont_ascii_in_layer(layer, 8, 28, COL8_WHITE, COL8_BLACK, ">");
-
   for(;;) {
     io_cli();
     if(!fifo32_size(&task -> fifo)) {
@@ -242,16 +242,34 @@ void command_handler(struct CONSOLE *console, char *command) {
     command_run(console, para);
   } else if(strcmp(com, "exit") == 0) {
     command_exit(console);
+  } else if(strcmp(com, "help") == 0) {
+    command_help(console);
+  } else if(strcmp(com, "chelp") == 0) {
+    command_chelp(console);
   } else {
     print_screen(console, "No such command.\n", 17);
   }
   return;
 }
 
+void command_help(struct CONSOLE *console) {
+  char *str = "BASIC-OS v1.0\nControl + T: A New Console\nControl + Z: Terminate App\nTAB: Switch Between Windows\nType \"chelp\" To See Commands In Console\n";
+  print_screen(console, str, strlen(str));
+  return;
+}
+
+void command_chelp(struct CONSOLE *console) {
+  char *str = "Commands:\nmem: Show Memory Status\nclear: Clear The Conole\nls: List Files\ncat *: Show Context Of File\nrun *.bex: Run An App\nexit: Exit Console\n";
+  print_screen(console, str, strlen(str));
+  return;
+}
+
 void console_window_init(struct CONSOLE *console) {
   console -> window = window_alloc();
   // dprint_int(console -> window);
-  window_set(console -> window, "console", 256, 165, -1, 312, 184, 2, 0, console -> task, console, 0);
+  int x = rand() % 160 + 160;
+  int y = rand() % 120 + 120;
+  window_set(console -> window, "console", 256, 165, -1, x, y, 2, 0, console -> task, console, 0);
   make_textbox8(console -> window -> layer, 8, 28, 240, 128, COL8_BLACK);
   return;
 }
